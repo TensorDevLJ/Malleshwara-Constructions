@@ -1,5 +1,7 @@
 ✅ Backend: https://malleshwara-constructions-1.onrender.com 
 ✅ Frontend: https://malleshwara-constructions-2.onrender.com  
+
+Netlify=https://malleshwaraconstructions.netlify.app/
 # Malleshwara Constructions - Full-Stack Website
 
 ## 🏗️ Project Overview
