@@ -240,9 +240,8 @@ This project is licensed under the MIT License.
 ## 📞 Support
 
 For support and questions:
-- Email: contact@malleshwara.com
-- Phone: +91 98765 43210
-- WhatsApp: +91 98765 43210
+- Email: likhithajlikhi@gmail.com
+
 
 ---
 
