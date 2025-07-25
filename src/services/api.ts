@@ -111,18 +111,16 @@ class ApiService {
   }
 
   // ---------------- TESTIMONIALS ----------------
+  // Corrected code
   async createTestimonial(data: any) {
+    console.log("Submitting payload:", data); // Good for debugging
     const response = await fetch(`${this.baseURL}/api/testimonials`, {
       method: "POST",
       headers: this.getHeaders(),
       body: JSON.stringify(data),
     });
     return this.handleResponse(response);
-    console.log("Submitting payload:", FormData);
-    await apiService.createTestimonial(FormData);
-
   }
-
   async getTestimonials(params?: any) {
     const query = params ? "?" + new URLSearchParams(params).toString() : "";
     const response = await fetch(`${this.baseURL}/api/testimonials${query}`, {
@@ -133,9 +131,12 @@ class ApiService {
 
   async getAllTestimonials(params?: any) {
     const query = params ? "?" + new URLSearchParams(params).toString() : "";
-    const response = await fetch(`${this.baseURL}/api/testimonials/admin${query}`, {
-      headers: this.getHeaders(),
-    });
+    const response = await fetch(
+      `${this.baseURL}/api/testimonials/admin${query}`,
+      {
+        headers: this.getHeaders(),
+      }
+    );
     return this.handleResponse(response);
   }
 
