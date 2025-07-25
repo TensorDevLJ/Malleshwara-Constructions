@@ -38,11 +38,11 @@ const testimonialSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  status: {
-    type: String,
-    enum: ['pending', 'approved', 'rejected'],
-    default: 'pending'
-  },
+  // status: {
+  //   type: String,
+  //   enum: ['pending', 'approved', 'rejected'],
+  //   default: 'pending'
+  // },
   isVerified: {
     type: Boolean,
     default: false

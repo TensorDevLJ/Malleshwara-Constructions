@@ -46,7 +46,7 @@ app.use('/api/auth/login', authLimiter);
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:8080',
+  origin: process.env.FRONTEND_URL || 'http://localhost:8080' || "https://malleshwara-constructions-1.onrender.com/" ||"https://malleshwara-constructions-1.onrender.com",
   credentials: true,
   optionsSuccessStatus: 200
 };
