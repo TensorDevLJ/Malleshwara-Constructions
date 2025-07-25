@@ -1,37 +1,44 @@
-import { useState } from 'react';
-import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Star,
-  Quote,
-  Plus,
-  User,
-  Calendar,
-  CheckCircle,
-  MessageSquare
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import apiService from '@/services/api';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Star, Quote, Plus, User, Calendar, CheckCircle, MessageSquare } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import apiService from "@/services/api";
 
 const Testimonials = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
+
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    service: '',
+    name: "",
+    email: "",
+    service: "",
     rating: 5,
-    comment: '',
-    email: ''
+    comment: "",
+    location: "", // optional
   });
+
+  
+
+
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const services = [
+    "Fence Installation",
+    "Construction Materials",
+    "Labor Services",
+    "Wedding Catering",
+    "Event Catering",
+    "Other",
+  ];
 
   useEffect(() => {
     loadTestimonials();
@@ -43,195 +50,162 @@ const Testimonials = () => {
       const response = await apiService.getTestimonials({ limit: 20 });
       setTestimonials(response.data.testimonials);
     } catch (error) {
-      console.error('Failed to load testimonials:', error);
+      console.error("Load error:", error);
+      setTestimonials([]);
     } finally {
       setLoading(false);
     }
   };
 
-
-  const services = [
-    'Fence Installation',
-    'Construction Materials',
-    'Labor Services',
-    'Wedding Catering',
-    'Event Catering',
-    'Other'
-  ];
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Submit to backend API
-    apiService.createTestimonial(formData)
-      .then(() => {
-        toast({
-          title: "Thank you for your feedback!",
-          description: "Your testimonial has been submitted and will be reviewed before publication.",
-        });
-        
-        // Reset form
-        setFormData({
-          name: '',
-          service: '',
-          rating: 5,
-          comment: '',
-          email: ''
-        });
-        setShowForm(false);
-      })
-      .catch((error) => {
-        toast({
-          title: "Error",
-          description: "Failed to submit testimonial. Please try again.",
-          variant: "destructive"
-        });
-        console.error('Testimonial submission error:', error);
+
+    if (formData.comment.trim().length < 10) {
+      toast({
+        title: "Validation Error",
+        description: "Comment must be at least 10 characters.",
+        variant: "destructive",
       });
+      return;
+    }
+
+    try {
+      await apiService.createTestimonial(formData);
+      toast({
+        title: "Thank you!",
+        description: "Your testimonial has been submitted successfully.",
+      });
+
+      setFormData({
+        name: "",
+        email: "",
+        service: "",
+        rating: 5,
+        comment: "",
+        location: "",
+      });
+
+      setShowForm(false);
+      loadTestimonials();
+    } catch (error: any) {
+      console.error("Submission error:", error);
+      toast({
+        title: "Submission Failed",
+        description: error.message || "Could not submit testimonial.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const renderStars = (rating: number, interactive = false, onRatingChange?: (rating: number) => void) => {
-    return (
-      <div className="flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`h-5 w-5 ${
-              star <= rating 
-                ? 'text-yellow-400 fill-current' 
-                : 'text-gray-300'
-            } ${interactive ? 'cursor-pointer hover:text-yellow-400' : ''}`}
-            onClick={() => interactive && onRatingChange && onRatingChange(star)}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  const stats = [
-    { label: 'Total Reviews', value: '150+' },
-    { label: 'Average Rating', value: '4.8' },
-    { label: 'Satisfied Clients', value: '98%' },
-    { label: 'Repeat Customers', value: '85%' }
-  ];
+  const renderStars = (rating: number, interactive = false, onRate?: (n: number) => void) => (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star
+          key={i}
+          className={`h-5 w-5 ${i <= rating ? "text-yellow-400 fill-current" : "text-gray-300"} 
+            ${interactive ? "cursor-pointer hover:text-yellow-400" : ""}`}
+          onClick={() => interactive && onRate?.(i)}
+        />
+      ))}
+    </div>
+  );
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="py-20 bg-gradient-hero text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            {t('testimonials.title')}
-          </h1>
-          <p className="text-xl opacity-90 max-w-3xl mx-auto leading-relaxed mb-8">
-            {t('testimonials.subtitle')}
-          </p>
-          
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-2xl md:text-3xl font-bold mb-1">{stat.value}</div>
-                <div className="text-sm opacity-90">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Add Review Button */}
-      <section className="py-8 bg-white border-b">
+      {/* Hero */}
+      <section className="py-20 bg-gradient-hero text-white text-center">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-              <h2 className="text-2xl font-bold">Customer Reviews</h2>
-              <p className="text-muted-foreground">Real feedback from our valued clients</p>
-            </div>
-            <Button 
-              variant="hero" 
-              onClick={() => setShowForm(!showForm)}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              {t('testimonials.addReview')}
-            </Button>
-          </div>
+          <h1 className="text-4xl font-bold mb-4">{t("testimonials.title") || "Testimonials"}</h1>
+          <p className="text-lg max-w-xl mx-auto">
+            {t("testimonials.subtitle") || "What our clients are saying"}
+          </p>
         </div>
       </section>
 
-      {/* Add Review Form */}
+      {/* Add Button */}
+      <section className="py-6 bg-white">
+        <div className="container mx-auto px-4 flex justify-between items-center">
+          <h2 className="text-2xl font-semibold">Customer Feedback</h2>
+          <Button variant="hero" onClick={() => setShowForm(!showForm)}>
+            <Plus className="w-4 h-4 mr-2" /> Add Review
+          </Button>
+        </div>
+      </section>
+
+      {/* Form */}
       {showForm && (
-        <section className="py-8 bg-accent/5">
-          <div className="container mx-auto px-4">
-            <Card className="max-w-2xl mx-auto">
+        <section className="bg-accent/5 py-10">
+          <div className="container mx-auto px-4 max-w-2xl">
+            <Card>
               <CardHeader>
-                <h3 className="text-xl font-semibold">Share Your Experience</h3>
-                <p className="text-muted-foreground">Help others by sharing your experience with our services</p>
+                <h3 className="text-xl font-bold">Share your experience</h3>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="name">{t('testimonials.name')} *</Label>
+                      <Label htmlFor="name">Name *</Label>
                       <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
                         required
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="email">Email (Optional)</Label>
+                      <Label htmlFor="email">Email (optional)</Label>
                       <Input
-                        id="email"
                         type="email"
                         value={formData.email}
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       />
                     </div>
                   </div>
-                  
+
                   <div>
-                    <Label htmlFor="service">{t('testimonials.service')} *</Label>
+                    <Label>Service *</Label>
                     <select
-                      id="service"
-                      value={formData.service}
-                      onChange={(e) => setFormData({...formData, service: e.target.value})}
-                      className="w-full p-2 border border-input rounded-lg"
                       required
+                      className="w-full p-2 border rounded-md"
+                      value={formData.service}
+                      onChange={(e) => setFormData({ ...formData, service: e.target.value })}
                     >
                       <option value="">Select a service</option>
-                      {services.map((service) => (
-                        <option key={service} value={service}>{service}</option>
+                      {services.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <Label>{t('testimonials.rating')} *</Label>
-                    <div className="mt-2">
-                      {renderStars(formData.rating, true, (rating) => 
-                        setFormData({...formData, rating})
-                      )}
-                    </div>
+                    <Label>Rating *</Label>
+                    {renderStars(formData.rating, true, (rating) =>
+                      setFormData({ ...formData, rating })
+                    )}
                   </div>
 
                   <div>
-                    <Label htmlFor="comment">{t('testimonials.comment')} *</Label>
+                    <Label>Comment *</Label>
                     <Textarea
-                      id="comment"
-                      value={formData.comment}
-                      onChange={(e) => setFormData({...formData, comment: e.target.value})}
-                      placeholder="Share your experience with our services..."
-                      rows={4}
                       required
+                      rows={4}
+                      placeholder="Share your experience (minimum 10 characters)"
+                      value={formData.comment}
+                      onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Location (optional)</Label>
+                    <Input
+                      value={formData.location}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     />
                   </div>
 
                   <div className="flex gap-4">
-                    <Button type="submit" variant="hero">
-                      {t('testimonials.submit')}
-                    </Button>
+                    <Button type="submit">Submit</Button>
                     <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
                       Cancel
                     </Button>
@@ -243,88 +217,52 @@ const Testimonials = () => {
         </section>
       )}
 
-      {/* Testimonials Grid */}
-      <section className="py-20">
+      {/* Testimonials List */}
+      <section className="py-16">
         <div className="container mx-auto px-4">
           {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p>Loading testimonials...</p>
-            </div>
+            <p>Loading testimonials...</p>
+          ) : testimonials.length === 0 ? (
+            <p>No testimonials yet.</p>
           ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {testimonials.map((testimonial) => (
-              <Card key={testimonial._id} className="hover-lift elegant-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-hero rounded-full flex items-center justify-center">
-                        <User className="h-6 w-6 text-white" />
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {testimonials.map((t) => (
+                <Card key={t._id}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-12 h-12 bg-primary rounded-full flex justify-center items-center">
+                        <User className="text-white w-6 h-6" />
                       </div>
                       <div>
-                        <h4 className="font-semibold">{testimonial.name}</h4>
-                        {new Date(testimonial.createdAt).toLocaleDateString()}
+                        <h4 className="font-semibold">{t.name}</h4>
+                        <small className="text-muted-foreground">
+                          {new Date(t.createdAt).toLocaleDateString()}
+                        </small>
                       </div>
+                      {t.isVerified && (
+                        <Badge className="ml-auto">
+                          <CheckCircle className="w-4 h-4 mr-1" /> Verified
+                        </Badge>
+                      )}
                     </div>
-                    {testimonial.isVerified && (
-                      <Badge variant="secondary" className="text-xs">
-                        <CheckCircle className="mr-1 h-3 w-3" />
-                        Verified
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="mb-4">
-                    {renderStars(testimonial.rating)}
-                  </div>
-
-                  <div className="mb-4">
-                    <Quote className="h-8 w-8 text-accent/20 mb-2" />
-                    <p className="text-muted-foreground italic">{testimonial.comment}</p>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm text-muted-foreground pt-4 border-t">
-                    <div className="flex items-center">
-                      <MessageSquare className="h-4 w-4 mr-1" />
-                      {testimonial.service}
+                    <div className="mb-2">{renderStars(t.rating)}</div>
+                    <Quote className="w-6 h-6 text-accent/40" />
+                    <p className="italic text-muted-foreground mt-2">{t.comment}</p>
+                    <div className="text-sm mt-4 flex justify-between pt-4 border-t">
+                      <span className="flex items-center gap-1">
+                        <MessageSquare className="w-4 h-4" />
+                        {t.service}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        {new Date(t.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      {new Date(testimonial.date).toLocaleDateString()}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
-
-          {/* Load More */}
-          <div className="text-center mt-12">
-            <Button variant="outline" size="lg">
-              Load More Reviews
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-accent text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Join Our Satisfied Customers
-          </h2>
-          <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
-            Experience the quality and professionalism that our customers love. Get started with your project today.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="minimal" size="xl">
-              Get Free Quote
-            </Button>
-            <Button variant="outline" size="xl" className="bg-transparent text-white border-white hover:bg-white hover:text-accent">
-              View Our Services
-            </Button>
-          </div>
         </div>
       </section>
     </div>

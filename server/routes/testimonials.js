@@ -40,7 +40,8 @@ const testimonialValidation = [
     .withMessage('Location must be less than 100 characters')
 ];
 
-// Routes
+// Routes -- app.use('/api/testimonials', testimonialRoutes);
+
 router.post('/', testimonialValidation, createTestimonial);
 router.get('/', getApprovedTestimonials);
 router.get('/admin', authMiddleware, adminMiddleware, getAllTestimonials);
